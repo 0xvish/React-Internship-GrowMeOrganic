@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
@@ -6,15 +6,33 @@ import { OverlayPanel } from "primereact/overlaypanel";
 import { InputNumber } from "primereact/inputnumber";
 import "primeicons/primeicons.css";
 
+type TableItem = {
+  id: string;
+  title: string;
+  place_of_origin: string;
+  artist_display: string;
+  inscriptions: string;
+  date_start: number;
+  date_end: number;
+};
+
 const CustomDataTable = () => {
-  const [tableData, setTableData] = useState<any[]>([]);
+  const [tableData, setTableData] = useState<TableItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [selectedProducts, setSelectedProducts] = useState<{
     ids: Set<string>;
-    items: any[];
+    items: {
+      id: string;
+      title: string;
+      place_of_origin: string;
+      artist_display: string;
+      inscriptions: string;
+      date_start: number;
+      date_end: number;
+    }[];
   }>({
     ids: new Set(),
     items: [],
@@ -47,14 +65,23 @@ const CustomDataTable = () => {
     fetchTableData(currentPage);
   }, [currentPage]);
 
+  interface SelectedProducts {
+    ids: Set<string>;
+    items: TableItem[];
+  }
+
+  interface SelectionChangeEvent {
+    value: TableItem[];
+  }
+
   const onSelectionChange = useCallback(
-    (e) => {
-      const newSelectedProducts = {
+    (e: SelectionChangeEvent) => {
+      const newSelectedProducts: SelectedProducts = {
         ids: new Set(selectedProducts.ids),
         items: [...selectedProducts.items],
       };
 
-      e.value.forEach((item) => {
+      e.value.forEach((item: TableItem) => {
         if (!newSelectedProducts.ids.has(item.id)) {
           newSelectedProducts.ids.add(item.id);
           newSelectedProducts.items.push(item);
@@ -179,7 +206,7 @@ const CustomDataTable = () => {
             totalRecords={totalRecords}
             lazy
             first={(currentPage - 1) * 12}
-            onPage={(e) => setCurrentPage(e.page + 1)}
+            onPage={(e) => setCurrentPage((e.page ?? 0) + 1)}
             loading={loading}
             header={
               <i
